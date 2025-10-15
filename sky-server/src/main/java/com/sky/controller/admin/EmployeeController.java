@@ -91,11 +91,39 @@ public class EmployeeController {
 
     @ApiOperation("新增员工")
     @PostMapping
-    public  Result add(@RequestBody Employee employee)
+    public  Result<String> add(@RequestBody Employee employee)
     {
         log.info("新增员工：{}",employee);
         employeeService.add(employee);
         return Result.success();
     }
 
+
+
+    @ApiOperation("员工状态禁用或启用")
+    @PostMapping("/status/{status}")
+    public Result<String> startOrStop(@PathVariable Integer status,@RequestParam Long id)
+    {
+        log.info("员工状态禁用或启用：{}",status);
+        employeeService.startOrStop(status,id);
+        return Result.success();
+    }
+
+    @ApiOperation("员工信息查询")
+    @GetMapping("/{id}")
+    public Result<Employee> getById(@PathVariable Long id)
+    {
+        log.info("员工信息查询");
+        Employee employee = employeeService.getById(id);
+        return Result.success(employee);
+    }
+
+    @ApiOperation("员工信息修改")
+    @PutMapping
+    public Result<String> update(@RequestBody Employee employee)
+        {
+            log.info("员工信息修改");
+            employeeService.update(employee);
+            return Result.success();
+        }
 }
