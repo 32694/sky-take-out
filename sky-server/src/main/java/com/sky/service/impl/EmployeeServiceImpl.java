@@ -5,6 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.entity.Employee;
@@ -97,7 +98,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Employee getById(Long id) {
-        return employeeMapper.getById(id);
+       Employee employee = employeeMapper.getById(id);
+        return employee;
     }
 
     @Override

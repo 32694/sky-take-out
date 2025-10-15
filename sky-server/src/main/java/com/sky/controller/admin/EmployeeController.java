@@ -1,6 +1,7 @@
 package com.sky.controller.admin;
 
 import com.sky.constant.JwtClaimsConstant;
+import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.entity.Employee;
@@ -91,9 +92,19 @@ public class EmployeeController {
 
     @ApiOperation("新增员工")
     @PostMapping
-    public  Result<String> add(@RequestBody Employee employee)
+    public  Result<String> add(@RequestBody EmployeeDTO employeeDTO)
     {
-        log.info("新增员工：{}",employee);
+
+
+        log.info("新增员工：{}",employeeDTO);
+        // 将DTO转换为Entity进行业务处理
+        Employee employee = Employee.builder()
+                .username(employeeDTO.getUsername())
+                .name(employeeDTO.getName())
+                .phone(employeeDTO.getPhone())
+                .sex(employeeDTO.getSex())
+                .idNumber(employeeDTO.getIdNumber())
+                .build();
         employeeService.add(employee);
         return Result.success();
     }
@@ -111,19 +122,37 @@ public class EmployeeController {
 
     @ApiOperation("员工信息查询")
     @GetMapping("/{id}")
-    public Result<Employee> getById(@PathVariable Long id)
+    public Result<EmployeeDTO> getById(@PathVariable Long id)
     {
         log.info("员工信息查询");
         Employee employee = employeeService.getById(id);
-        return Result.success(employee);
+        EmployeeDTO employeeDTO = new EmployeeDTO();
+        employeeDTO.setName(employee.getName());
+        employeeDTO.setUsername(employee.getUsername());
+        employeeDTO.setId(employee.getId());
+        employeeDTO.setPhone(employee.getPhone());
+        employeeDTO.setSex(employee.getSex());
+        employeeDTO.setIdNumber(employee.getIdNumber());
+        return Result.success(employeeDTO);
     }
 
     @ApiOperation("员工信息修改")
     @PutMapping
-    public Result<String> update(@RequestBody Employee employee)
+    public Result<String> update(@RequestBody  EmployeeDTO employeeDTO)
         {
-            log.info("员工信息修改");
+            log.info("员工信息修改",employeeDTO);
+
+            // 将DTO转换为Entity进行业务处理
+            Employee employee = Employee.builder()
+                    .username(employeeDTO.getUsername())
+                    .name(employeeDTO.getName())
+                    .phone(employeeDTO.getPhone())
+                    .sex(employeeDTO.getSex())
+                    .idNumber(employeeDTO.getIdNumber())
+                    .build();
             employeeService.update(employee);
             return Result.success();
         }
+
+
 }
