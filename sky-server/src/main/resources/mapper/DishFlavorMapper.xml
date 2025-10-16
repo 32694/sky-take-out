@@ -8,6 +8,10 @@
             (#{dishFlavor.dishId},#{dishFlavor.name},#{dishFlavor.value})
         </foreach>
     </insert>
+    <delete id="deleteByDishId">
+        DELETE FROM dish_flavor WHERE dish_id = #{dishId}
+    </delete>
+
 
     <select id="list" resultType="com.sky.entity.DishFlavor">
         SELECT * FROM dish_flavor

@@ -6,6 +6,42 @@
         insert into dish (name, category_id, price, status, image, description, create_time, update_time, create_user, update_user)
         values (#{name}, #{categoryId}, #{price}, #{status}, #{image}, #{description}, #{createTime}, #{updateTime}, #{createUser}, #{updateUser})
     </insert>
+    <update id="update" useGeneratedKeys="true" keyProperty="id">
+        update dish
+<set>
+    <if test="name != null">
+        name = #{name},
+    </if>
+            <if test="categoryId != null">
+        category_id = #{categoryId},
+    </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="image != null">
+                image = #{image},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+</set>
+            where id = #{id}
+    </update>
+    <delete id="deletebatch">
+        delete from dish where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
 
     <select id="pagequery" resultType="com.sky.vo.DishVO">
         SELECT
@@ -33,5 +69,13 @@
         FROM dish d
         LEFT JOIN category c ON d.category_id = c.id
         WHERE d.id = #{id}
+    </select>
+    <select id="list" resultType="com.sky.vo.DishVO">
+        SELECT
+        d.*,
+        c.name as categoryName
+        FROM dish d
+        LEFT JOIN category c ON d.category_id = c.id
+        WHERE category_id=#{categoryId}
     </select>
 </mapper>

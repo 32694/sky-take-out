@@ -15,6 +15,8 @@ import com.sky.service.DishService;
 import com.sky.vo.DishVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -49,11 +51,35 @@ public class DishServiceImpl implements DishService {
     }
 
 
+    @Transactional
     @Override
     public DishVO getById(Long id) {
         DishVO dishVO = dishMapper.findById(id);
         List<DishFlavor> dishFlavor = dishFlavorMapper.list(id);
         dishVO.setFlavors(dishFlavor);
         return dishVO;
+    }
+
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        Dish dish = Dish.builder().id(id).status(status).build();
+        dishMapper.update(dish);
+    }
+
+    @Override
+    public void update(Dish dish) {
+        dishMapper.update(dish);
+    }
+
+    @Override
+    public List<DishVO> list(Long categoryId) {
+        return dishMapper.list(categoryId);
+    }
+
+    @Transactional
+    @Override
+    public void deletebatch(List<Long> ids) {
+        dishMapper.deletebatch(ids);
+        ids.forEach(id -> dishFlavorMapper.deleteByDishId(id));
     }
 }
