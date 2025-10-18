@@ -4,6 +4,7 @@ import com.sky.constant.MessageConstant;
 import com.sky.result.Result;
 import com.sky.utils.AliOssUtil;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,12 +16,13 @@ import java.io.IOException;
 
 @RestController
 @Slf4j
-@Api(tags = "文件上传接口")
+@Api(tags = "通用接口")
 @RequestMapping("/admin/common")
 public class UpLoadController {
     @Autowired
     private AliOssUtil aliyunOSSOperator;
     @PostMapping("upload")
+    @ApiOperation("文件上传")
     public Result upload(MultipartFile file) {
         log.info("文件上传开始:{}",file.getOriginalFilename());
         try {
