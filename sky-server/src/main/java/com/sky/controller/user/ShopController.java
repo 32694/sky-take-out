@@ -9,7 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 @RestController("UserShopController")
-@RequestMapping("/admin/user")
+@RequestMapping("/user/shop")
 @Slf4j
 @Api(tags = "店铺相关接口")
 public class ShopController {
@@ -25,4 +25,5 @@ public class ShopController {
         Integer shopStatus = (Integer) redisTemplate.opsForValue().get(SHOP_STATUS);
         return Result.success(shopStatus);
     }
+
 }

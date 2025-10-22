@@ -46,6 +46,11 @@ select * from category
 </where>
     </select>
     <select id="list" resultType="Category">
-    select * from category where type = #{type}
+    select * from category
+<where>
+    <if test="type != null">
+        type = #{type}
+    </if>
+</where>
     </select>
 </mapper>
