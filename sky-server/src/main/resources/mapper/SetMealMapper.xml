@@ -75,8 +75,17 @@ where s.id = #{id}
     <select id="list" parameterType="Setmeal" resultType="Setmeal">
         select * from setmeal
         <where>
-            ...
+            <if test="categoryId != null">
+                and category_id = #{categoryId}
+            </if>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
         </where>
+        order by update_time desc
     </select>
 
 
