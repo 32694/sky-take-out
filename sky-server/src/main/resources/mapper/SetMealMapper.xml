@@ -75,6 +75,7 @@ where s.id = #{id}
     <select id="list" parameterType="Setmeal" resultType="Setmeal">
         select * from setmeal
         <where>
+            status=1
             <if test="categoryId != null">
                 and category_id = #{categoryId}
             </if>
@@ -87,8 +88,6 @@ where s.id = #{id}
         </where>
         order by update_time desc
     </select>
-
-
 
 
 
