@@ -1,8 +1,11 @@
 package com.sky.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
@@ -10,16 +13,16 @@ import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
+import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -146,6 +149,76 @@ public class OrderServiceImpl implements OrderService {
                 .checkoutTime(LocalDateTime.now())
                 .build();
 
+        orderMapper.update(orders);
+    }
+
+
+    // 查询订单详情
+    @Override
+    public OrderVO details(Long id) {
+        OrderVO orderVO = orderMapper.details(id);
+        orderVO.setOrderDetailList(orderDetailMapper.getByOrderId(id));
+        //订单菜品信息是什么！String orderDishes
+        return orderVO;
+    }
+
+    @Override
+    public PageResult pageQuery(OrdersPageQueryDTO ordersPageQueryDTO) {
+        ordersPageQueryDTO.setUserId(BaseContext.getCurrentId());
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+        Page<OrderVO> page = orderMapper.pageQuery(ordersPageQueryDTO);
+
+        List<OrderVO> list = page.getResult();
+        for (OrderVO orderVO : list) {
+            orderVO.setOrderDetailList(orderDetailMapper.getByOrderId(orderVO.getId()));
+        }
+        return new PageResult(page.getTotal(), list);
+    }
+
+    @Override
+    public void repetition(Long id) {
+        //这里需要把订单的菜品信息添加到购物车里面！！！调试前端可以发现
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId( id);
+        for (OrderDetail orderDetail : orderDetailList) {
+            ShoppingCart shoppingCart = ShoppingCart.builder()
+                    .name(orderDetail.getName())
+                    .userId(BaseContext.getCurrentId())
+                    .dishId(orderDetail.getDishId())
+                    .setmealId(orderDetail.getSetmealId())
+                    .image(orderDetail.getImage())
+                    .dishFlavor(orderDetail.getDishFlavor())
+                    .number(orderDetail.getNumber())
+                    .amount(orderDetail.getAmount())
+                    .createTime(LocalDateTime.now())
+                    .build();
+            shoppingCartMapper.insert(shoppingCart);
+        }
+    }
+
+    @Override
+    public void cancel(Long id) {
+        Orders orders = orderMapper.details(id);
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        if (orders.getStatus() > 2) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelReason("用户取消");
+        orderMapper.update(orders);
+    }
+
+    @Override
+    public void reminder(Long id) {
+        Orders orders = orderMapper.details(id);
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        if (orders.getStatus() != Orders.DELIVERY_IN_PROGRESS) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        orders.setDeliveryStatus(1);
         orderMapper.update(orders);
     }
 

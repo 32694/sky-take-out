@@ -22,10 +22,15 @@
             </if>
         </where>
     </select>
+
+
+
     <select id="list" resultType="com.sky.entity.ShoppingCart">
         select * from shopping_cart
         <where>
             user_id = #{userId}
         </where>
     </select>
+
+
 </mapper>
