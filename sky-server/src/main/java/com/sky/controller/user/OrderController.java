@@ -1,5 +1,6 @@
 package com.sky.controller.user;
 
+import com.sky.dto.OrdersCancelDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
@@ -67,11 +68,13 @@ public class OrderController {
         ordersPageQueryDTO.setPage(page);
         ordersPageQueryDTO.setPageSize(pageSize);
         ordersPageQueryDTO.setStatus(status);
-        return Result.success(orderService.pageQuery(ordersPageQueryDTO));
+        log.info("查询历史订单：{}", ordersPageQueryDTO);
+        return Result.success(orderService.pageQuery(ordersPageQueryDTO,true));
     }
     @PostMapping("repetition/{id}")
     @ApiOperation("再来一单")
     public Result repetition(@PathVariable("id") Long id){
+        log.info("再来一单，订单id为：{}", id);
         orderService.repetition(id);
         return Result.success();
     }
@@ -82,7 +85,11 @@ public class OrderController {
     @PutMapping("cancel/{id}")
     @ApiOperation("取消订单")
     public Result cancel(@PathVariable("id") Long id){
-        orderService.cancel(id);
+        log.info("取消订单，订单id为：{}", id);
+        OrdersCancelDTO ordersCancelDTO = new OrdersCancelDTO();
+        ordersCancelDTO.setId(id);
+        ordersCancelDTO.setCancelReason("用户取消");
+        orderService.cancel(ordersCancelDTO);
         return Result.success();
     }
 
@@ -90,6 +97,7 @@ public class OrderController {
     @GetMapping("reminder/{id}")
     @ApiOperation("催单")
     public Result reminder(@PathVariable("id") Long id){
+        log.info("催单，订单id为：{}", id);
         orderService.reminder(id);
         return Result.success();
     }

@@ -5,9 +5,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
@@ -17,6 +15,7 @@ import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
@@ -44,6 +43,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private WeChatPayUtil weChatPayUtil;
+
+    @Autowired
+    private DeliveryService deliveryService;
     @Override
     @Transactional
     public OrderSubmitVO submit(OrdersSubmitDTO ordersSubmitDTO) {
@@ -54,7 +56,7 @@ public class OrderServiceImpl implements OrderService {
         }
         Long userId = BaseContext.getCurrentId();
         List<ShoppingCart> carts = shoppingCartMapper.list(userId);
-        if (carts.size() == 0|| carts == null) {
+        if (carts.size() == 0|| carts.isEmpty()) {
             throw new ShoppingCartBusinessException(MessageConstant.SHOPPING_CART_IS_NULL);
         }
         //向订单表插入1条数据
@@ -70,6 +72,14 @@ public class OrderServiceImpl implements OrderService {
         //地址没有加进来
         String address = addressBook.getProvinceName() + addressBook.getCityName() + addressBook.getDistrictName() + addressBook.getDetail();
         orders.setAddress(address);
+        //判断地址是否在配送范围
+
+        // 配送范围校验
+        if (!deliveryService.checkDeliveryRange( address )) {
+            throw new RuntimeException("超出配送范围（5公里），暂不支持该地址配送");
+        }
+
+
         //username没有加进来(user表格里面就是空的)
         orderMapper.insert(orders);
         // 向订单明细表插入n条数据
@@ -163,8 +173,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public PageResult pageQuery(OrdersPageQueryDTO ordersPageQueryDTO) {
-        ordersPageQueryDTO.setUserId(BaseContext.getCurrentId());
+    public PageResult pageQuery(OrdersPageQueryDTO ordersPageQueryDTO,boolean isUserQuery) {
+        if (isUserQuery) {
+            ordersPageQueryDTO.setUserId(BaseContext.getCurrentId());
+        }
         PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
         Page<OrderVO> page = orderMapper.pageQuery(ordersPageQueryDTO);
 
@@ -196,16 +208,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void cancel(Long id) {
-        Orders orders = orderMapper.details(id);
+    public void cancel(OrdersCancelDTO ordersCancelDTO) {
+        Orders orders = orderMapper.details(ordersCancelDTO.getId());
         if (orders == null) {
             throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
         }
-        if (orders.getStatus() > 2) {
+        if (orders.getStatus() != Orders.PENDING_PAYMENT) {
             throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
         }
+        orders.setCancelReason(ordersCancelDTO.getCancelReason());
         orders.setStatus(Orders.CANCELLED);
-        orders.setCancelReason("用户取消");
+        orders.setCancelTime(LocalDateTime.now());
         orderMapper.update(orders);
     }
 
@@ -219,6 +232,61 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
         }
         orders.setDeliveryStatus(1);
+        orderMapper.update(orders);
+    }
+
+    @Override
+    public OrderStatisticsVO statistics() {
+        return orderMapper.statistics();
+    }
+
+    @Override
+    public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
+        Orders order = Orders.builder()
+                .id(ordersConfirmDTO.getId())
+                .status(Orders.CONFIRMED)  // 使用常量3表示已接单
+                .build();
+        orderMapper.update(order);
+    }
+
+    @Override
+    public void rejection(OrdersRejectionDTO ordersRejectionDTO) {
+        Orders orders=orderMapper.details(ordersRejectionDTO.getId());
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        if (orders.getStatus() != Orders.PENDING_PAYMENT && orders.getStatus()!=Orders.TO_BE_CONFIRMED) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        orders.setRejectionReason(ordersRejectionDTO.getRejectionReason());
+        orders.setStatus(Orders.CANCELLED);
+        orderMapper.update(orders);
+    }
+
+    @Override
+    public void delivery(Long id) {
+        Orders orders = orderMapper.details(id);
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        if (orders.getStatus() != Orders.CONFIRMED) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        orders.setStatus(Orders.DELIVERY_IN_PROGRESS);
+        orderMapper.update(orders);
+    }
+
+    @Override
+    public void complete(Long id) {
+        Orders orders = orderMapper.details(id);
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        if (orders.getStatus() != Orders.DELIVERY_IN_PROGRESS) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        orders.setStatus(Orders.COMPLETED);
+        orders.setDeliveryTime(LocalDateTime.now());
         orderMapper.update(orders);
     }
 
