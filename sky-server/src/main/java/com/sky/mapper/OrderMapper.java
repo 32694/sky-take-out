@@ -40,4 +40,9 @@ public interface OrderMapper {
 
     @Select("select * from orders where status = #{status} and order_time < #{orderTime}")
     List<Orders> getByStatusandTime(Integer status, LocalDateTime orderTime);
+
+
+    // 测试用，不是商户支付功能无法实现
+    @Select("select id from orders where number = #{outTradeNo}")
+    Long getIdByOutTradeNo(String outTradeNo);
 }

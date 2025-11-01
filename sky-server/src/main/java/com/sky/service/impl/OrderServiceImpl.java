@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -18,13 +19,16 @@ import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import com.sky.websocket.WebSocketServer;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -46,6 +50,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private DeliveryService deliveryService;
+
+
+    @Autowired
+    private WebSocketServer webSocketServer;
+
     @Override
     @Transactional
     public OrderSubmitVO submit(OrdersSubmitDTO ordersSubmitDTO) {
@@ -135,8 +144,11 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderBusinessException("该订单已支付");
         }
 
+
+
         OrderPaymentVO vo = jsonObject.toJavaObject(OrderPaymentVO.class);
         vo.setPackageStr(jsonObject.getString("package"));
+
 
         return vo;
     }
@@ -159,7 +171,23 @@ public class OrderServiceImpl implements OrderService {
                 .checkoutTime(LocalDateTime.now())
                 .build();
 
+
+
+        //以下为正常逻辑，发送订单消息给客户端
+//        //通过webSocket发送信息给客户端
+//        Map map = new HashMap();
+//        //1表示新订单
+//        map.put("type", 1);
+//        map.put("orderId", ordersDB.getId());
+//        map.put("content", "订单号：" + outTradeNo);
+//        String json = JSON.toJSONString(map);
+//        webSocketServer.sendToAllClient(json);
+
+
+
         orderMapper.update(orders);
+
+
     }
 
 
@@ -228,11 +256,16 @@ public class OrderServiceImpl implements OrderService {
         if (orders == null) {
             throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
         }
-        if (orders.getStatus() != Orders.DELIVERY_IN_PROGRESS) {
-            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
-        }
-        orders.setDeliveryStatus(1);
-        orderMapper.update(orders);
+
+        Map map = new HashMap();
+        //2表示催单
+        map.put("type", 2);
+        map.put("orderId", orders.getId());
+        map.put("content", "订单号：" + orders.getNumber());
+        String json = JSON.toJSONString(map);
+
+        webSocketServer.sendToAllClient(json);
+;
     }
 
     @Override
@@ -288,6 +321,11 @@ public class OrderServiceImpl implements OrderService {
         orders.setStatus(Orders.COMPLETED);
         orders.setDeliveryTime(LocalDateTime.now());
         orderMapper.update(orders);
+    }
+
+    @Override
+    public Long getIdByOutTradeNo(String outTradeNo) {
+        return orderMapper.getIdByOutTradeNo(outTradeNo);
     }
 
 

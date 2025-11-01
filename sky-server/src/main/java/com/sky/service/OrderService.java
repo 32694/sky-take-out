@@ -43,4 +43,8 @@ public interface OrderService {
     void delivery(Long id);
 
     void complete(Long id);
+
+
+    //测试用，不是商户支付功能无法实现
+    Long getIdByOutTradeNo(String outTradeNo);
 }
