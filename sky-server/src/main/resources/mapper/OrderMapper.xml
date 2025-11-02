@@ -85,4 +85,16 @@
         sum(amount) as totalAmount
         from orders
     </select>
+    <select id="countByMap" resultType="java.lang.Integer">
+        select count(id)
+        from orders
+        <where>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="beginTime != null">
+                and order_time &gt;= #{beginTime}
+            </if>
+        </where>
+    </select>
 </mapper>

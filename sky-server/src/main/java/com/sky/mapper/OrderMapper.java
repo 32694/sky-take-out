@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface OrderMapper {
@@ -45,4 +46,6 @@ public interface OrderMapper {
     // 测试用，不是商户支付功能无法实现
     @Select("select id from orders where number = #{outTradeNo}")
     Long getIdByOutTradeNo(String outTradeNo);
+
+    Integer countByMap(Map map);
 }
