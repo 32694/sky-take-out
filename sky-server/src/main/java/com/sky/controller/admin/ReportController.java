@@ -11,6 +11,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.time.LocalDate;
 
 @RestController
@@ -45,5 +49,11 @@ public class ReportController {
     public Result top10(@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin, @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end){
         log.info("统计销量top10：{}到{}", begin, end);
         return Result.success(reportService.top10(begin, end));
+    }
+    @ApiOperation("导出Excel报表")
+    @GetMapping("/export")
+    public Result export(HttpServletResponse  response) throws IOException {
+        reportService.export(response);
+        return Result.success();
     }
 }
