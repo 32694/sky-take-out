@@ -1,5 +1,6 @@
 package com.sky.controller.user;
 
+import com.sky.config.ShopProperties;
 import com.sky.result.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -18,12 +19,22 @@ public class ShopController {
     @Autowired
     private RedisTemplate redisTemplate;
 
+
+    @Autowired
+    private ShopProperties shop;
+
     @GetMapping("/status")
     @ApiOperation("查询店铺状态")
     public Result<Integer> getShopStatus() {
         log.info("查询店铺状态");
         Integer shopStatus = (Integer) redisTemplate.opsForValue().get(SHOP_STATUS);
         return Result.success(shopStatus);
+    }
+    @GetMapping("/getMerchantInfo")
+    @ApiOperation("查询商户信息")
+    public Result getMerchantInfo() {
+        log.info("查询商户信息{}", shop);
+        return Result.success(shop);
     }
 
 }

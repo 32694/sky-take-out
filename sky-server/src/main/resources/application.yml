@@ -55,5 +55,7 @@ sky:
     secret: ${sky.wechat.secret}
   shop:
     address: ${sky.shop.address}
+    phone: ${sky.shop.phone}
+    name: ${sky.shop.name}
   baidu-map:
       ak: ${sky.shop.baidu-map.ak}
