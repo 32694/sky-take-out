@@ -10,8 +10,10 @@ import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
+import com.sky.mapper.OrderDetailMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
+import com.sky.vo.DishSalesVO;
 import com.sky.vo.DishVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class DishServiceImpl implements DishService {
@@ -28,6 +32,9 @@ public class DishServiceImpl implements DishService {
 
     @Autowired
     private DishFlavorMapper dishFlavorMapper;
+
+    @Autowired
+    private OrderDetailMapper orderDetailMapper;
     @Override
     public PageResult pagequery(DishPageQueryDTO dishPageQueryDTO) {
         PageHelper.startPage(dishPageQueryDTO.getPage(),dishPageQueryDTO.getPageSize());
@@ -41,9 +48,10 @@ public class DishServiceImpl implements DishService {
             List<DishFlavor> dishFlavor=dishFlavorMapper.list(dishVO.getId());
             dishVO.setFlavors(dishFlavor);
         });
+        list = listByDishId(list);
         PageResult pageResult = new PageResult();
         pageResult.setTotal(pagedata.getTotal());
-        pageResult.setRecords(pagedata.getResult());
+        pageResult.setRecords(list);
         return pageResult;
     }
 
@@ -76,7 +84,9 @@ public class DishServiceImpl implements DishService {
 
     @Override
     public List<DishVO> list(Long categoryId) {
-        return dishMapper.list(categoryId);
+        List<DishVO> dishList = dishMapper.list(categoryId);
+        dishList = listByDishId(dishList);
+        return dishList;
     }
 
     @Transactional
@@ -102,7 +112,22 @@ public class DishServiceImpl implements DishService {
             dishVO.setFlavors(flavors);
             dishVOList.add(dishVO);
         }
-
+        dishVOList = listByDishId(dishVOList);
         return dishVOList;
+    }
+
+
+    //查询菜品销售数据
+    public List<DishVO> listByDishId(List<DishVO> dishList) {
+        List<DishSalesVO> salesList = orderDetailMapper.getDishMonthlySales();
+        Map<Long, Integer> salesMap = salesList.stream()
+                .collect(Collectors.toMap(DishSalesVO::getDishId, DishSalesVO::getNum));
+
+        for (DishVO dish : dishList) {
+            Long dishId = dish.getId();
+            Integer num = salesMap.get(dishId);
+            dish.setNum(num != null ? num : 0);
+        }
+        return dishList;
     }
 }

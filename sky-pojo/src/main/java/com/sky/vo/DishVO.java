@@ -16,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DishVO implements Serializable {
+    private static final long serialVersionUID = 1L;  // 固定版本号
 
     private Long id;
     //菜品名称
@@ -36,6 +37,6 @@ public class DishVO implements Serializable {
     private String categoryName;
     //菜品关联的口味
     private List<DishFlavor> flavors = new ArrayList<>();
-
-    //private Integer copies;
+    //月销量
+    private Integer num;
 }

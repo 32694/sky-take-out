@@ -27,7 +27,7 @@ public interface SetMealService {
      * @param setmeal
      * @return
      */
-    List<Setmeal> list(Setmeal setmeal);
+    List<SetmealVO> list(Setmeal setmeal);
 
     /**
      * 根据id查询菜品选项

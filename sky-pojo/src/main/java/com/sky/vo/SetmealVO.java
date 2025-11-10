@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SetmealVO implements Serializable {
-
+    private static final long serialVersionUID = 1L;  // 固定版本号
     private Long id;
 
     //分类id
@@ -45,4 +45,7 @@ public class SetmealVO implements Serializable {
 
     //套餐和菜品的关联关系
     private List<SetmealDish> setmealDishes = new ArrayList<>();
+
+    //月销量
+    private Integer num;
 }

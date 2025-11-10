@@ -7,23 +7,26 @@ import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
+import com.sky.mapper.OrderDetailMapper;
 import com.sky.mapper.SetMealMapper;
 import com.sky.result.PageResult;
 import com.sky.service.SetMealService;
-import com.sky.vo.DishItemVO;
-import com.sky.vo.SetmealVO;
+import com.sky.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class SetMealServiceImpl implements SetMealService {
     @Autowired
     private SetMealMapper setMealMapper;
 
-
+    @Autowired
+    private OrderDetailMapper orderDetailMapper;
     @Transactional
     @Override
     public void add(SetmealDTO setmealDTO) {
@@ -58,6 +61,7 @@ public class SetMealServiceImpl implements SetMealService {
             List<SetmealDish> setmealDish=setMealMapper.getListDish(setmealVO.getId());
             setmealVO.setSetmealDishes(setmealDish);
         });
+        list = listBySetMealId(list);
         return new PageResult(pagedata.getTotal(),list);
     }
 
@@ -108,8 +112,9 @@ public class SetMealServiceImpl implements SetMealService {
     }
 
     @Override
-    public List<Setmeal> list(Setmeal setmeal) {
-        List<Setmeal> list = setMealMapper.list(setmeal);
+    public List<SetmealVO> list(Setmeal setmeal) {
+        List<SetmealVO> list = setMealMapper.list(setmeal);
+        list = listBySetMealId(list);
         return list;
     }
 
@@ -118,5 +123,16 @@ public class SetMealServiceImpl implements SetMealService {
         return setMealMapper.getDishItemBySetmealId(id);
     }
 
+
+    //查询套餐销售数据
+    public List<SetmealVO> listBySetMealId(List<SetmealVO>  setmealList) {
+        List<SetmealSalesVO> sales = orderDetailMapper.getSetmealMonthlySales();
+        Map<Long, Integer> salesMap = sales.stream()
+                .collect(Collectors.toMap(SetmealSalesVO::getSetmealId, SetmealSalesVO::getNum));
+
+        setmealList.forEach(item -> item.setNum(salesMap.getOrDefault(item.getId(), 0)));
+
+        return setmealList;
+    }
 
 }

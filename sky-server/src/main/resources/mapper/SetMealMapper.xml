@@ -72,7 +72,7 @@ where s.id = #{id}
             #{id}
         </foreach>
     </delete>
-    <select id="list" parameterType="Setmeal" resultType="Setmeal">
+    <select id="list" parameterType="Setmeal" resultType="com.sky.vo.SetmealVO">
         select * from setmeal
         <where>
             status=1

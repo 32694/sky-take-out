@@ -22,7 +22,7 @@ public interface SetMealMapper {
      * @param setmeal
      * @return
      */
-    List<Setmeal> list(Setmeal setmeal);
+    List<SetmealVO> list(Setmeal setmeal);
 
     /**
      * 根据套餐id查询菜品选项
