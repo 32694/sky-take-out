@@ -21,7 +21,8 @@ sky:
     secret: ec8bb8621c0e6edb80baf74d29e24cd2
   shop:
     address: 北京市海淀区清华东路35号北京林业大学
-    name: 苍穹外卖
+    name: 魔力外卖
     phone: 400-1234-567
+    deliveryPrice: 3
   baidu-map:
       ak: SpBLytKTPx8AyLnRtH98haJeR67arkfa

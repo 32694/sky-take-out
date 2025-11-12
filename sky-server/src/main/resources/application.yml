@@ -57,5 +57,6 @@ sky:
     address: ${sky.shop.address}
     phone: ${sky.shop.phone}
     name: ${sky.shop.name}
+    deliveryPrice: ${sky.shop.deliveryPrice}
   baidu-map:
       ak: ${sky.shop.baidu-map.ak}
