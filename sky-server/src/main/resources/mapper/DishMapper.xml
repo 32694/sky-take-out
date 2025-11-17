@@ -94,4 +94,23 @@
             </if>
         </where>
     </select>
+
+
+
+    <!-- 查询所有启用的菜品，排除分类ID为11和12 -->
+    <select id="listAllEnabled" resultType="com.sky.vo.DishVO">
+        SELECT * FROM dish
+        WHERE status = 1
+          AND category_id NOT IN (11, 12)
+        ORDER BY update_time DESC
+    </select>
+
+    <!-- 查询最近上架的启用菜品，排除分类ID为11和12 -->
+    <select id="listRecentEnabled" resultType="com.sky.vo.DishVO">
+        SELECT * FROM dish
+        WHERE status = 1
+          AND category_id NOT IN (11, 12)
+        ORDER BY create_time DESC
+        LIMIT #{count}
+    </select>
 </mapper>

@@ -26,4 +26,8 @@ public interface DishService {
 
 
     List<DishVO> listWithFlavor(Dish dish);
+
+    List<DishVO> getPopularBySales(int count);
+
+    List<DishVO> guessYouLike(Long userId);
 }

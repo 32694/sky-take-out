@@ -22,6 +22,7 @@ import com.sky.vo.OrderVO;
 import com.sky.websocket.WebSocketServer;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.index.PathBasedRedisIndexDefinition;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -54,6 +55,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private WebSocketServer webSocketServer;
+
+
+    @Autowired
+    private SalesCacheService salesCacheService;
 
     @Override
     @Transactional
@@ -108,6 +113,8 @@ public class OrderServiceImpl implements OrderService {
                 .orderAmount(orders.getAmount())
                 .orderTime(orders.getOrderTime())
                 .build();
+
+
         return orderSubmitVO;
     }
 
@@ -187,7 +194,8 @@ public class OrderServiceImpl implements OrderService {
 
         orderMapper.update(orders);
 
-
+        // ✅ 新增：支付成功时清理销量缓存
+        salesCacheService.refreshSalesCache();
     }
 
 
@@ -248,6 +256,9 @@ public class OrderServiceImpl implements OrderService {
         orders.setStatus(Orders.CANCELLED);
         orders.setCancelTime(LocalDateTime.now());
         orderMapper.update(orders);
+
+        // ✅ 新增：订单取消时清理销量缓存
+        salesCacheService.refreshSalesCache();
     }
 
     @Override
@@ -294,6 +305,10 @@ public class OrderServiceImpl implements OrderService {
         orders.setRejectionReason(ordersRejectionDTO.getRejectionReason());
         orders.setStatus(Orders.CANCELLED);
         orderMapper.update(orders);
+
+        // ✅ 新增：订单拒绝时清理销量缓存
+        salesCacheService.refreshSalesCache();
+        
     }
 
     @Override
@@ -321,6 +336,9 @@ public class OrderServiceImpl implements OrderService {
         orders.setStatus(Orders.COMPLETED);
         orders.setDeliveryTime(LocalDateTime.now());
         orderMapper.update(orders);
+
+        // ✅ 新增：订单完成时清理销量缓存
+        salesCacheService.refreshSalesCache();
     }
 
     @Override

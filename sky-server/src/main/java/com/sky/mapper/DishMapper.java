@@ -36,4 +36,17 @@ public interface DishMapper {
      * @return
      */
     Integer countByMap(Map map);
+
+
+
+    /**
+     * 查询所有启用的菜品
+     */
+    List<DishVO> listAllEnabled();
+
+    /**
+     * 查询最近上架的启用菜品
+     * @param count 数量
+     */
+    List<DishVO> listRecentEnabled(int count);
 }
